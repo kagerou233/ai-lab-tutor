@@ -1,0 +1,64 @@
+from typing import List, Dict, Any, Optional, Iterator
+from pydantic import BaseModel, Field, RootModel
+
+class LearningStep(BaseModel):
+    """
+    Rich information teaching node
+    """
+    step_title: str = Field(
+        default="",
+        description="这一步骤的简短标题，例如：'关闭栈保护'或'定位返回地址'"
+    )
+    
+    # --- Human-Facing Channel ---
+    guiding_question: str = Field(
+        default="",
+        description="[对人] 用于奠定该步骤总基调，启发学生思考的引导式提问"
+    )
+    
+    # --- Machine-Facing Channel ---
+    success_criteria: str = Field(
+        default="",
+        description="[对机器] 用于评估该步骤完成，明确的成功标准。例如: '学生需要描述出EIP寄存器的作用'"
+    )
+    
+    # --- 其它元数据 ---
+    learning_objective: str = Field(
+        default="",
+        description="学生在该步骤的学习中应该掌握的核心知识点"
+    )
+    
+    scaffolding_hints: List[str] = Field(
+        default=[],
+        description="如果学生答不上来时，用于层层拆解的提示列表（从简单到复杂，3-5个递进式提示）"
+    )
+    
+    def get(self, key: str, default: Any=None):
+        return getattr(self, key, default)
+
+# structure of curriculum.json
+class Curriculum(RootModel[List[LearningStep]]):
+    """Complete structured teaching curriculum"""
+    root: List[LearningStep] = Field(
+        description="按顺序排列的、构成整个实验的所有富信息教学节点。"
+    )
+    
+    def get_step_title(self, stepIndex: int) -> str:
+        "start from 0"
+        return self.root[stepIndex].step_title
+    def get_guiding_question(self, stepIndex: int) -> str:
+        "start from 0"
+        return self.root[stepIndex].guiding_question
+    def get_success_criteria(self, stepIndex: int) -> str:
+        "start from 0"
+        return self.root[stepIndex].success_criteria
+    def get_learning_objective(self, stepIndex: int) -> str:
+        "start from 0"
+        return self.root[stepIndex].learning_objective
+
+    def get_step(self, stepIndex: int) -> LearningStep:
+        "start from 0"
+        return self.root[stepIndex]
+    
+    def get_len(self) -> int:
+        return len(self.root)
